@@ -1,7 +1,7 @@
 <?php
 /*
 
-Copyright 2018-PLUGIN_TILL_YEAR Marcin Pietrzak (marcin@iworks.pl)
+Copyright 2024-PLUGIN_TILL_YEAR Marcin Pietrzak (marcin@iworks.pl)
 
 this program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2, as
@@ -31,132 +31,68 @@ class iworks_mainwp_sites_report extends iworks_mainwp_sites_report_base {
 
 	public function __construct() {
 		parent::__construct();
-		$this->version    = 'PLUGIN_VERSION';
-		$this->capability = apply_filters( 'iworks_mainwp_sites_report_capability', 'manage_options' );
-		/**
-		 * post types
-		 */
-		include_once 'class-mainwp-sites-report-posttypes.php';
-		new iworks_wordpress_plugin_posttypes();
-
+		$this->version = 'PLUGIN_VERSION';
 		/**
 		 * init
 		 */
 		add_action( 'init', array( $this, 'action_init_load_plugin_textdomain' ), 0 );
 		/**
-		 * admin init
+		 * admin menu
 		 */
-		add_action( 'admin_init', array( $this, 'action_admin_init' ) );
+		add_action( 'admin_menu', array( $this, 'action_admin_menu' ) );
 		/**
 		 * is active?
 		 */
 		add_filter( 'mainwp-sites-report/is_active', '__return_true' );
 	}
 
-	public function action_admin_init() {
-		iworks_mainwp_sites_report_options_init();
-		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
-		add_filter( 'plugin_row_meta', array( $this, 'plugin_row_meta' ), 10, 2 );
-	}
-
-	public function admin_enqueue_scripts() {
-		$screen = get_current_screen();
-		/**
-		 * off on not mainwp-sites-report pages
-		 */
-		$re = sprintf( '/%s_/', __CLASS__ );
-		if ( ! preg_match( $re, $screen->id ) ) {
-			return;
-		}
-		/**
-		 * datepicker
-		 */
-		$file = 'assets/externals/datepicker/css/jquery-ui-datepicker.css';
-		$file = plugins_url( $file, $this->base );
-		wp_register_style( 'jquery-ui-datepicker', $file, false, '1.12.1' );
-		/**
-		 * select2
-		 */
-		$file = 'assets/externals/select2/css/select2.min.css';
-		$file = plugins_url( $file, $this->base );
-		wp_register_style( 'select2', $file, false, '4.0.3' );
-		/**
-		 * Admin styles
-		 */
-		$file    = sprintf( '/assets/styles/admin%s.css', $this->dev );
-		$version = $this->get_version( $file );
-		$file    = plugins_url( $file, $this->base );
-		wp_register_style( 'admin-mainwp-sites-report', $file, array( 'jquery-ui-datepicker', 'select2' ), $version );
-		wp_enqueue_style( 'admin-mainwp-sites-report' );
-		/**
-		 * select2
-		 */
-		wp_register_script( 'select2', plugins_url( 'assets/externals/select2/js/select2.full.min.js', $this->base ), array(), '4.0.3' );
-		/**
-		 * Admin scripts
-		 */
-		$files = array(
-			'mainwp-sites-report-admin' => sprintf( 'assets/scripts/admin/admin%s.js', $this->dev ),
+	public function action_admin_menu() {
+		add_management_page(
+			__( 'Sites Report', 'mainwp-sites-report' ),
+			__( 'Sites Report', 'mainwp-sites-report' ),
+			'activate_plugins',
+			'mainwp-sites-report',
+			array( $this, 'render_page' )
 		);
-		if ( '' == $this->dev ) {
-			$files = array(
-				'mainwp-sites-report-admin-datepicker' => 'assets/scripts/admin/src/datepicker.js',
-				'mainwp-sites-report-admin-select2'    => 'assets/scripts/admin/src/select2.js',
-				'mainwp-sites-report-admin-media-library'    => 'assets/scripts/admin/src/media-library.js',
-			);
-		}
-		$deps = array(
-			'jquery-ui-datepicker',
-			'select2',
-		);
-		foreach ( $files as $handle => $file ) {
-			wp_register_script(
-				$handle,
-				plugins_url( $file, $this->base ),
-				$deps,
-				$this->get_version(),
-				true
-			);
-			wp_enqueue_script( $handle );
-		}
-		/**
-		 * JavaScript messages
-		 *
-		 * @since 1.0.0
-		 */
-		$data = array(
-			'messages' => array(),
-			'nonces'   => array(),
-			'user_id'  => get_current_user_id(),
-		);
-		wp_localize_script(
-			'mainwp_sites_report_admin',
-			__CLASS__,
-			apply_filters( 'wp_localize_script_mainwp_sites_report_admin', $data )
-		);
-	}
-
-	public function init() {
-		if ( is_admin() ) {
-		} else {
-			$file = 'assets/styles/mainwp_sites_report' . $this->dev . '.css';
-			wp_enqueue_style( 'mainwp-sites-report', plugins_url( $file, $this->base ), array(), $this->get_version( $file ) );
-		}
 	}
 
 	/**
-	 * Plugin row data
+	 * Display callback for the submenu page.
 	 */
-	public function plugin_row_meta( $links, $file ) {
-		if ( $this->dir . '/mainwp-sites-report.php' == $file ) {
-			if ( ! is_multisite() && current_user_can( $this->capability ) ) {
-				$links[] = '<a href="admin.php?page=' . $this->dir . '/admin/index.php">' . __( 'Settings', 'mainwp-sites-report' ) . '</a>';
+	public function render_page() {
+		global $wpdb;
+		echo '<div class="wrap">';
+		echo '<h1>';
+		esc_html_e( 'Sites Report', 'mainwp-sites-report' );
+		echo '</h1>';
+		$mainwp_group = $wpdb->prefix . 'mainwp_group';
+		// $mainwp_wp = $wpdb->prefix.'mainwp_wp';
+		$mainwp_wp_group = $wpdb->prefix . 'mainwp_wp_group';
+		$query           = "select g.name, count(b.groupid) as count from $mainwp_wp_group b left join $mainwp_group g on b.groupid = g.id group by b.groupid order by 1";
+		$result          = $wpdb->query( $query );
+		if ( $result ) {
+			echo '<table>';
+			echo '<tr>';
+			foreach ( $result as $one ) {
+				printf(
+					'<td>%s</td>',
+					$one->name
+				);
 			}
-			/* start:free */
-			$links[] = '<a href="http://iworks.pl/donate/mainwp-sites-report.php">' . __( 'Donate', 'mainwp-sites-report' ) . '</a>';
-			/* end:free */
+			echo '</tr>';
+			echo '<tr>';
+			foreach ( $result as $one ) {
+				printf(
+					'<td>%s</td>',
+					$one->count
+				);
+			}
+			echo '</tr>';
+			echo '</table>';
+		} else {
+			echo wpautop( esc_html_e( 'no groups', 'mainwp-sites-report' ) );
 		}
-		return $links;
+		echo '</div>';
 	}
 
 	/**
