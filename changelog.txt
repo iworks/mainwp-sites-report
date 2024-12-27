@@ -1,0 +1,5 @@
+Plugin Name: MainWP — Sites Report
+Author: Marcin Pietrzak ( iworks.pl )
+
+== Changelog ==
+
