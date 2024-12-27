@@ -417,7 +417,8 @@ module.exports = function(grunt) {
 	grunt.registerTask('default', ['clean:temp', 'concat', 'uglify', 'sass', 'cssmin']);
 	grunt.registerTask('js', ['concat', 'uglify']);
 	grunt.registerTask('css', ['sass', 'cssmin']);
-	grunt.registerTask('i18n', ['checktextdomain', 'makepot', 'potomo']);
+	// grunt.registerTask('i18n', ['checktextdomain', 'makepot', 'potomo']);
+	grunt.registerTask('i18n', ['checktextdomain', 'makepot']);
 
 	grunt.registerTask('build', ['default', 'i18n', 'clean', 'copy', 'replace', 'compress', 'notes']);
 	grunt.registerTask('test', ['phpunit', 'jshint', 'notes']);

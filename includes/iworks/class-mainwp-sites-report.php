@@ -65,14 +65,28 @@ class iworks_mainwp_sites_report extends iworks_mainwp_sites_report_base {
 		echo '<h1>';
 		esc_html_e( 'Sites Report', 'mainwp-sites-report' );
 		echo '</h1>';
-		$mainwp_group = $wpdb->prefix . 'mainwp_group';
-		// $mainwp_wp = $wpdb->prefix.'mainwp_wp';
+		/**
+		 * tables
+		 */
+		$mainwp_group    = $wpdb->prefix . 'mainwp_group';
+		$mainwp_wp       = $wpdb->prefix . 'mainwp_wp';
 		$mainwp_wp_group = $wpdb->prefix . 'mainwp_wp_group';
-		$query           = "select g.name, count(b.groupid) as count from $mainwp_wp_group b left join $mainwp_group g on b.groupid = g.id group by b.groupid order by 1";
-		$result          = $wpdb->query( $query );
+		/**
+		 * query
+		 */
+		$query  = "select g.name, count(b.groupid) as count from $mainwp_wp_group b left join $mainwp_group g on b.groupid = g.id group by b.groupid order by 1";
+		$result = $wpdb->get_results( $query );
 		if ( $result ) {
-			echo '<table>';
+			echo '<table class="wp-list-table widefat fixed striped table-view-list">';
 			echo '<tr>';
+			printf(
+				'<td>%s</td>',
+				esc_html__( 'All', 'mainwp-sites-report' )
+			);
+			printf(
+				'<td>%d</td>',
+				$wpdb->get_var( "select count(*) from $mainwp_wp" )
+			);
 			foreach ( $result as $one ) {
 				printf(
 					'<td>%s</td>',
@@ -83,7 +97,7 @@ class iworks_mainwp_sites_report extends iworks_mainwp_sites_report_base {
 			echo '<tr>';
 			foreach ( $result as $one ) {
 				printf(
-					'<td>%s</td>',
+					'<td>%d</td>',
 					$one->count
 				);
 			}
