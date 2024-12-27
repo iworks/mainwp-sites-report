@@ -78,14 +78,13 @@ class iworks_mainwp_sites_report extends iworks_mainwp_sites_report_base {
 		$result = $wpdb->get_results( $query );
 		if ( $result ) {
 			echo '<table class="wp-list-table widefat fixed striped table-view-list">';
+			/**
+			 * names
+			 */
 			echo '<tr>';
 			printf(
 				'<td>%s</td>',
 				esc_html__( 'All', 'mainwp-sites-report' )
-			);
-			printf(
-				'<td>%d</td>',
-				$wpdb->get_var( "select count(*) from $mainwp_wp" )
 			);
 			foreach ( $result as $one ) {
 				printf(
@@ -94,7 +93,14 @@ class iworks_mainwp_sites_report extends iworks_mainwp_sites_report_base {
 				);
 			}
 			echo '</tr>';
+			/**
+			 * values
+			 */
 			echo '<tr>';
+			printf(
+				'<td>%d</td>',
+				$wpdb->get_var( "select count(*) from $mainwp_wp" )
+			);
 			foreach ( $result as $one ) {
 				printf(
 					'<td>%d</td>',
